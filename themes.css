@@ -1,0 +1,173 @@
+:root {
+    /* =========================================
+       System Variables (Layout & Typography)
+       ========================================= */
+    
+    /* Spacing */
+    --gap-xs: 4px;
+    --gap-sm: 8px;
+    --gap-md: 16px;
+    --gap-lg: 24px;
+    --gap-xl: 32px;
+
+    /* Typography */
+    --font-family: "Quicksand", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-lg: 18px;
+    --line-height-base: 1.6;
+    
+    /* Radius */
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --radius-round: 9999px;
+
+    /* Touch Targets */
+    --touch-target-size: 48px;
+
+    /* Transitions */
+    --transition-fast: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* =========================================
+       Theme: Light (Romantic/Anime Default)
+       ========================================= */
+    --bg-color: #fdfbf7; /* Creamy White */
+    --bg-gradient: linear-gradient(135deg, #fdfbf7 0%, #fff0f5 100%);
+    --view-bg: transparent; /* Let gradient show */
+    
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --header-bg: rgba(255, 255, 255, 0.8);
+    
+    --text-color: #4a4a4a;
+    --text-secondary: #888888;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    
+    /* Soft Pink & Blue */
+    --primary-color: #ff85a2; /* Sakura Pink */
+    --primary-gradient: linear-gradient(135deg, #ff85a2 0%, #ffacc7 100%);
+    --primary-hover: #ff6b8e;
+    
+    --accent-color: #89cff0; /* Baby Blue */
+    --danger-color: #ff6b6b;
+    
+    --chat-bg: transparent;
+    --bubble-user-bg: #ff85a2;
+    --bubble-user-text: #ffffff;
+    --bubble-ai-bg: #ffffff;
+    --bubble-ai-text: #4a4a4a;
+
+    --shadow-sm: 0 2px 8px rgba(255, 133, 162, 0.15);
+    --shadow-md: 0 8px 24px rgba(255, 133, 162, 0.2);
+    --shadow-glow: 0 0 15px rgba(255, 133, 162, 0.4);
+}
+
+/* =========================================
+   Theme: Dark (Night Sky)
+   ========================================= */
+[data-theme="dark"] {
+    --bg-color: #1a1b26;
+    --bg-gradient: linear-gradient(135deg, #1a1b26 0%, #24283b 100%);
+    
+    --card-bg: rgba(36, 40, 59, 0.85);
+    --glass-bg: rgba(26, 27, 38, 0.7);
+    --header-bg: rgba(26, 27, 38, 0.8);
+    
+    --text-color: #c0caf5;
+    --text-secondary: #7aa2f7;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-bg: rgba(36, 40, 59, 0.9);
+    
+    --primary-color: #7aa2f7; /* Moon Blue */
+    --primary-gradient: linear-gradient(135deg, #7aa2f7 0%, #89ddff 100%);
+    --primary-hover: #5d8eea;
+    
+    --accent-color: #bb9af7;
+    
+    --bubble-user-bg: #7aa2f7;
+    --bubble-user-text: #1a1b26;
+    --bubble-ai-bg: #24283b;
+    --bubble-ai-text: #c0caf5;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 15px rgba(122, 162, 247, 0.3);
+}
+
+/* =========================================
+   Theme: Cyberpunk (Neon)
+   ========================================= */
+[data-theme="cyberpunk"] {
+    --bg-color: #050510;
+    --bg-gradient: linear-gradient(135deg, #050510 0%, #100b20 100%);
+    
+    --card-bg: rgba(10, 10, 25, 0.9);
+    --glass-bg: rgba(5, 5, 16, 0.8);
+    --header-bg: rgba(5, 5, 16, 0.9);
+    
+    --text-color: #00f3ff;
+    --text-secondary: #ff00ff;
+    --border-color: #00f3ff;
+    --input-bg: #000000;
+    
+    --primary-color: #ff00ff;
+    --primary-gradient: linear-gradient(90deg, #ff00ff, #00f3ff);
+    --primary-hover: #d600d6;
+    
+    --bubble-user-bg: #ff00ff;
+    --bubble-user-text: #ffffff;
+    --bubble-ai-bg: #000000;
+    --bubble-ai-text: #00f3ff;
+    
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-round: 4px;
+
+    --shadow-sm: 0 0 10px rgba(0, 243, 255, 0.4);
+    --shadow-md: 0 0 20px rgba(255, 0, 255, 0.4);
+    --shadow-glow: 0 0 20px rgba(0, 243, 255, 0.8);
+}
+
+/* =========================================
+   Theme: Parchment (Storybook)
+   ========================================= */
+[data-theme="parchment"] {
+    --bg-color: #f4e4bc;
+    --bg-gradient: url('assets/paper.png'), linear-gradient(to bottom, #f4e4bc, #e6d5a7);
+    
+    --card-bg: #fdf6e3;
+    --glass-bg: rgba(253, 246, 227, 0.9);
+    --header-bg: #f4e4bc;
+    
+    --text-color: #433422;
+    --text-secondary: #8b5a2b;
+    --border-color: #d6c6ac;
+    --input-bg: #fffbf0;
+    
+    --primary-color: #8b4513;
+    --primary-gradient: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+    --primary-hover: #a0522d;
+    
+    --bubble-user-bg: #8b4513;
+    --bubble-user-text: #fff8dc;
+    --bubble-ai-bg: #fffbf0;
+    --bubble-ai-text: #433422;
+
+    --font-family: "Georgia", "Times New Roman", serif;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-round: 50%;
+    
+    --shadow-sm: 2px 2px 5px rgba(67, 52, 34, 0.15);
+    --shadow-md: 5px 5px 15px rgba(67, 52, 34, 0.2);
+    --shadow-glow: none;
+}

@@ -1,0 +1,21 @@
+{
+  "name": "AI Roleplay",
+  "short_name": "AI RPG",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#6200ea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/paper.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/paper.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

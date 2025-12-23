@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 角色扮演</title>
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 设置页面 -->
+    <div id="settings-view" class="view active">
+        <div class="header">
+            <h1>角色设定</h1>
+            <select id="themeSelect" class="theme-select">
+                <option value="light">明亮 (Light)</option>
+                <option value="dark">暗黑 (Dark)</option>
+                <option value="cyberpunk">赛博 (Cyber)</option>
+                <option value="parchment">羊皮纸 (Old)</option>
+            </select>
+        </div>
+        <div class="content">
+            
+            <!-- Tools Bar (Export/Stats) -->
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                 <input type="file" id="importFile" accept=".json" style="display: none;">
+                 <button id="importBtn" class="btn-small primary" style="flex:1; background-color: var(--accent-color);">📥 导入数据 (Import)</button>
+                 <button id="exportBtn" class="btn-small primary" style="flex:1;">📤 导出数据 (Export)</button>
+                 <button id="syncModalBtn" class="btn-small primary" style="flex:1; background-color: #9c27b0;">☁️ 云端同步 (Cloud)</button>
+            </div>
+            
+            <!-- Sync Status -->
+            <div id="syncStatus" style="font-size: 12px; color: var(--text-secondary); text-align: center; margin-bottom: 10px; display: none;">
+                上次同步: <span id="syncTime">Never</span> • 状态: <span id="syncState">Local Only</span>
+            </div>
+
+            <!-- Sync Modal -->
+            <div id="syncPanel" class="modal hidden">
+                <div class="modal-content card">
+                    <div class="card-header">
+                        <h3>☁️ 多端同步 (Sync)</h3>
+                        <button id="closeSyncBtn" class="icon-btn-small danger">✕</button>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>当前设备身份 (Device Identity)</label>
+                        <div class="row" style="background: var(--input-bg); padding: 5px; border-radius: 20px;">
+                            <button id="setIdentityPc" class="btn-small flex-grow primary">💻 电脑 (PC)</button>
+                            <button id="setIdentityMobile" class="btn-small flex-grow" style="background: transparent; color: var(--text-color); border: 1px solid transparent;">📱 手机 (Mobile)</button>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top:5px;">
+                            请在不同设备上选择对应的身份。
+                        </div>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-color); margin: 15px 0;"></div>
+
+                    <div class="input-group">
+                        <label>1. 发送数据 (Send)</label>
+                        <div class="row">
+                            <button id="cloudUploadBtn" class="primary-btn" style="min-height: 40px; font-size: 14px;">
+                                📤 上传本机数据到云端
+                            </button>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            将当前所有数据上传到对应身份的云端存档。
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-top: 15px;">
+                        <label>2. 接收数据 (Receive)</label>
+                        <div class="row">
+                            <button id="cloudDownloadBtn" class="primary-btn" style="min-height: 40px; font-size: 14px; background: linear-gradient(135deg, #00b09b, #96c93d);">
+                                📥 下载对方数据并合并
+                            </button>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            从另一端下载数据，并将角色自动归类到「来自手机/电脑」分类中。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                 <button id="statsBtn" class="btn-small primary" style="flex:1;">📊 数据统计 (Stats)</button>
+                 <button id="randomEventBtn" class="btn-small primary" style="background-color: var(--accent-color); flex:1;">🎲 随机事件 (Event)</button>
+            </div>
+
+            <!-- Card: 分类与管理 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>📚 角色管理</h3>
+                </div>
+                <div class="input-group">
+                    <label>分类 (Category)</label>
+                    <div class="row">
+                        <select id="categorySelect" class="flex-grow">
+                            <option value="default">默认分类 (Default)</option>
+                        </select>
+                        <button id="addCategoryBtn" class="icon-btn-small" title="新建分类">➕</button>
+                        <button id="editCategoryBtn" class="icon-btn-small" title="编辑分类设定">⚙️</button>
+                    </div>
+                </div>
+
+                <!-- 分类设定面板 -->
+                <div id="categorySettingsPanel" class="sub-panel" style="display: none;">
+                    <h4 class="sub-title">分类公共设定</h4>
+                    <div class="input-group">
+                        <label>分类名称</label>
+                        <div class="row">
+                            <input type="text" id="categoryName" placeholder="例如：赛博朋克世界">
+                            <button id="saveCategoryBtn" class="btn-small primary" title="保存">💾</button>
+                            <button id="deleteCategoryBtn" class="btn-small danger" title="删除">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>公共设定 (Shared Prompt)</label>
+                        <textarea id="categoryPrompt" placeholder="该分类下所有角色共用的世界观、规则..." rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>选择角色 (Character)</label>
+                    <div class="row">
+                        <select id="charSelect" class="flex-grow">
+                            <option value="">-- 新建/未保存 --</option>
+                        </select>
+                        <button id="saveCharBtn" class="icon-btn-small" title="保存角色">💾</button>
+                        <button id="deleteCharBtn" class="icon-btn-small danger" title="删除角色">🗑️</button>
+                    </div>
+                    <!-- Import Card Button -->
+                    <div class="row" style="margin-top: 5px;">
+                        <input type="file" id="importCardInput" accept="image/png, .json" style="display: none;">
+                        <button id="importCardBtn" class="btn-small" style="width: 100%; border: 1px dashed var(--text-secondary); color: var(--text-secondary);">
+                            📥 导入角色卡 (Import Tavern Card)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: 身份设定 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>👤 角色身份</h3>
+                </div>
+                <div class="input-group">
+                    <label>角色名称 (Name)</label>
+                    <input type="text" id="charName" placeholder="例如：福尔摩斯" value="未命名角色">
+                </div>
+
+                <!-- Avatar & Background Upload -->
+                <div class="row" style="margin-bottom: 15px; gap: 10px;">
+                    <div class="input-group" style="flex:1; align-items:center;">
+                        <label>头像 (Avatar)</label>
+                        <div class="avatar-upload" onclick="document.getElementById('avatarInput').click()">
+                            <img id="avatarPreview" src="assets/paper.png" alt="Avatar">
+                            <div class="overlay">📷 Upload</div>
+                        </div>
+                        <input type="file" id="avatarInput" accept="image/*" style="display:none">
+                    </div>
+                    <div class="input-group" style="flex:2;">
+                        <label>聊天背景 (Background)</label>
+                        <button class="btn-small" onclick="document.getElementById('bgInput').click()" style="margin-top:10px; width:100%;">🖼️ 设置背景图 (Set BG)</button>
+                        <input type="file" id="bgInput" accept="image/*" style="display:none">
+                        <div id="bgPreviewStatus" style="font-size:12px; color:var(--text-secondary); margin-top:5px; text-align:center;">未设置 (None)</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>角色详情 (Description)</label>
+                    <textarea id="systemPrompt" placeholder="描述角色的性格、外貌、说话方式..." rows="5"></textarea>
+                </div>
+            </div>
+
+            <!-- Card: 世界书 (World Info) -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>📖 世界书 (Lorebook)</h3>
+                </div>
+                <div class="input-group">
+                    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:5px;">
+                        定义关键词，当聊天中出现这些词时，自动注入相关设定。
+                    </div>
+                    <div id="lorebookList" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                        <!-- Lore Items -->
+                    </div>
+                    <div class="row">
+                        <input type="text" id="loreKey" placeholder="关键词 (Key)" style="flex:1;">
+                        <button id="addLoreBtn" class="btn-small primary">添加</button>
+                    </div>
+                    <textarea id="loreContent" placeholder="设定内容 (Entry)" rows="2" style="margin-top:5px;"></textarea>
+                </div>
+            </div>
+
+            <!-- Card: 情境与任务 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>🌍 世界与情境</h3>
+                </div>
+                <div class="input-group">
+                    <label>世界观 (World View)</label>
+                    <textarea id="worldLore" placeholder="描述世界背景、规则、魔法/科技水平..." rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>任务目标 (Mission)</label>
+                    <textarea id="mission" placeholder="描述角色或玩家需要完成的任务、目标..." rows="2"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>当前情景 (Scenario)</label>
+                    <textarea id="currentScenario" placeholder="描述当前发生的事情、开场白..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Card: 用户设定 -->
+            <div class="card user-card">
+                <div class="card-header">
+                    <h3>🫵 玩家设定</h3>
+                </div>
+                <div class="input-group">
+                    <label>玩家名字 (Your Name)</label>
+                    <input type="text" id="userName" placeholder="你的名字">
+                </div>
+                <div class="input-group">
+                    <label>玩家详情 (Your Persona)</label>
+                    <textarea id="userDesc" placeholder="你的外貌、身份、性格描述..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Card: 系统设定 -->
+            <div class="card system-card">
+                <div class="card-header">
+                    <h3>🤖 系统与模型</h3>
+                </div>
+                
+                <!-- Appearance Settings -->
+                <div class="input-group">
+                    <label>界面外观 (Appearance)</label>
+                    <div class="row">
+                        <select id="fontSizeSelect" class="flex-grow">
+                            <option value="14px">小 (Small)</option>
+                            <option value="16px" selected>中 (Medium)</option>
+                            <option value="18px">大 (Large)</option>
+                        </select>
+                        <select id="typingSpeedSelect" class="flex-grow">
+                            <option value="10">快 (Fast)</option>
+                            <option value="30" selected>中 (Normal)</option>
+                            <option value="60">慢 (Slow)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>语言设置 (Language)</label>
+                    <select id="languageSelect">
+                        <option value="zh">中文 (Chinese)</option>
+                        <option value="en">English</option>
+                        <option value="ja">日本語 (Japanese)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>记忆与上下文 (Context)</label>
+                    <div class="slider-group">
+                        <label>
+                            <span>上下文记忆长度 (History Limit)</span>
+                            <span id="contextLimitValue">All</span>
+                        </label>
+                        <input type="range" id="contextLimit" min="0" max="50" step="1" value="0" title="0 = Unlimited">
+                        <div style="font-size:12px; color:var(--text-secondary);">0 表示无限制 (Unlimited)，否则只保留最近 N 条对话。</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>AI 功能指令 (Instructions)</label>
+                    <textarea id="aiInstructions" placeholder="设定 AI 的行为模式、回复格式、功能限制..." rows="3"></textarea>
+                </div>
+                
+                <details class="advanced-details">
+                    <summary>快捷指令管理 (Quick Commands)</summary>
+                    <div class="details-content">
+                         <div class="input-group">
+                            <label>新建指令 (New Command)</label>
+                            <input type="text" id="cmdName" placeholder="指令名称 (e.g. 攻击)">
+                            <textarea id="cmdContent" placeholder="指令内容 (e.g. 使用火球术攻击敌人)" rows="2"></textarea>
+                            <div class="row">
+                                <select id="cmdScope" class="flex-grow">
+                                    <option value="global">通用 (Global)</option>
+                                    <option value="category">当前分类专用 (Current Category)</option>
+                                </select>
+                                <button id="addCmdBtn" class="btn-small primary">添加</button>
+                            </div>
+                         </div>
+                         <div class="input-group">
+                            <label>已存指令 (Manage)</label>
+                            <div id="cmdList" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                                <!-- Command Items -->
+                            </div>
+                         </div>
+                    </div>
+                </details>
+
+                <details class="advanced-details" style="margin-top: 10px;">
+                    <summary>高级模型参数 (API & Config)</summary>
+                    <div class="details-content">
+                        <div class="input-group">
+                            <label>API 地址</label>
+                            <input type="text" id="apiUrl" value="http://localhost:8000/api/v1/chat/completions">
+                        </div>
+                        <div class="input-group">
+                            <label>API Key</label>
+                            <input type="password" id="apiKey" placeholder="sk-...">
+                        </div>
+                        <div class="input-group">
+                            <label>模型名称</label>
+                            <input type="text" id="modelName" value="gpt-3.5-turbo">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="input-group flex-grow">
+                                <label>最小字数 (Min Length)</label>
+                                <input type="number" id="minOutput" placeholder="Prompt Instruction" value="0">
+                            </div>
+                            <div class="input-group flex-grow">
+                                <label>最大Token (Max Tokens)</label>
+                                <input type="number" id="maxTokens" value="2000" step="100">
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <label>
+                                <span>随机性 (Temperature)</span>
+                                <span id="tempValue">0.8</span>
+                            </label>
+                            <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.8">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>最大长度 (Max Tokens)</label>
+                            <input type="number" id="maxTokens" value="2000" step="100">
+                        </div>
+
+                        <div class="slider-group">
+                            <label>
+                                <span>话题新鲜度 (Presence Penalty)</span>
+                                <span id="presenceValue">0</span>
+                            </label>
+                            <input type="range" id="presencePenalty" min="-2" max="2" step="0.1" value="0">
+                        </div>
+
+                        <div class="slider-group">
+                            <label>
+                                <span>频率惩罚 (Frequency Penalty)</span>
+                                <span id="frequencyValue">0</span>
+                            </label>
+                            <input type="range" id="frequencyPenalty" min="-2" max="2" step="0.1" value="0">
+                        </div>
+                    </div>
+                </details>
+
+                <details class="advanced-details" style="margin-top: 10px;">
+                    <summary>扩展与插件 (Extensions)</summary>
+                    <div class="details-content">
+                        <div class="input-group">
+                            <label>自定义 API Endpoint (Optional)</label>
+                            <input type="text" id="customEndpoint" placeholder="e.g. Local LLM / Custom Proxy">
+                        </div>
+                        <div class="input-group">
+                            <label>启用实验性功能</label>
+                            <div class="row">
+                                <input type="checkbox" id="enablePlugins" style="width: 20px; min-height: 20px;">
+                                <span style="font-size: 14px;">允许 AI 调用外部工具 (Mock)</span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Event Selection Modal -->
+            <div id="eventSelectionPanel" class="modal hidden">
+                <div class="modal-content card">
+                    <div class="card-header">
+                        <h3>🎲 选择随机事件 (Choose Event)</h3>
+                    </div>
+                    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">
+                        AI 生成了以下 3 个可能的发展，请选择一个：
+                    </div>
+                    <div id="eventOptionsList" style="display:flex; flex-direction:column; gap:10px;">
+                        <!-- Options injected here -->
+                    </div>
+                    <div class="row" style="margin-top:15px; border-top:1px solid var(--border-color); padding-top:10px;">
+                        <button id="cancelEventBtn" class="btn-small flex-grow">取消 (Cancel)</button>
+                        <button id="regenEventBtn" class="btn-small primary flex-grow">🔄 重新生成 (Reroll)</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="startBtn" class="primary-btn">开始对话 (Start Chat)</button>
+        </div>
+    </div>
+
+    <!-- 聊天页面 -->
+    <div id="chat-view" class="view">
+        <!-- 天气与时间背景层 -->
+        <div id="weather-layer" class="weather-layer"></div>
+        
+        <div class="header">
+            <button id="backBtn" class="icon-btn">←</button>
+            <h1 id="chatTitle">角色名字</h1>
+            <div style="display:flex; gap:5px;">
+                <button id="toggleHudBtn" class="icon-btn" title="显示/隐藏状态栏 (HUD)">👁️</button>
+                <button id="checkpointBtn" class="icon-btn" title="时光机 (Checkpoints)">🕰️</button>
+                <button id="clearBtn" class="icon-btn" title="清空对话">🗑️</button>
+            </div>
+        </div>
+
+        <!-- Checkpoint Panel (Modal) -->
+        <div id="checkpointPanel" class="modal hidden">
+            <div class="modal-content card">
+                <div class="card-header">
+                    <h3>🕰️ 时光机 (Time Machine)</h3>
+                    <button id="closeCheckpointBtn" class="icon-btn-small danger">✕</button>
+                </div>
+                <div class="input-group">
+                    <label>新建存档点 (New Branch)</label>
+                    <div class="row">
+                        <input type="text" id="checkpointName" placeholder="剧情节点名称...">
+                        <button id="saveCheckpointBtn" class="btn-small primary">保存 (Save)</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>历史存档点 (Load Branch)</label>
+                    <div id="checkpointList" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                        <!-- List items injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HUD: 状态栏 -->
+        <div class="hud-bar" id="hudBar">
+            <button id="toggleHudBtn" style="background:none;border:none;font-size:12px;cursor:pointer;">👁️</button>
+            <div class="hud-item" id="timeDisplay">🕰️ 08:00 (Day)</div>
+            <div class="hud-item" id="weatherDisplay">☀️ Sunny</div>
+            <div class="hud-item" id="locationDisplay">📍 Unknown</div>
+        </div>
+
+        <div id="chatHistory" class="chat-history">
+            <!-- 消息会在这里生成 -->
+            <div class="message system">
+                <div class="bubble">请在设置页配置角色并开始。</div>
+            </div>
+        </div>
+        
+        <!-- Quick Commands Bar -->
+        <div id="quickCmdBar" class="quick-cmd-bar hidden">
+            <!-- Buttons injected here -->
+        </div>
+
+        <!-- 快捷菜单按钮 (FAB) -->
+        <div class="fab-container">
+            <button id="quickMenuBtn" class="fab-btn">⚡</button>
+            <div id="quickMenu" class="quick-menu hidden">
+                <button class="quick-item" id="summarizeBtn">📝 总结当前剧情</button>
+                <button class="quick-item" id="undoBtn">↩️ 撤回上一步</button>
+                <button class="quick-item" id="regenBtn">🔄 重新生成</button>
+                <button class="quick-item" id="toggleTimeBtn">⏳ 推进时间</button>
+                <button class="quick-item" id="toggleWeatherBtn">🌦️ 切换天气</button>
+                <button class="quick-item" id="toggleSoundBtn">🔊 开启音效</button>
+                <button class="quick-item" id="randomEventQuickBtn">🎲 随机事件</button>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <textarea id="userInput" placeholder="输入消息..." rows="1"></textarea>
+            <button id="sendBtn">发送</button>
+        </div>
+    </div>
+    
+    <!-- 音效资源 (Local) -->
+    <audio id="msgSound" src="assets/msg.mp3" preload="auto"></audio>
+    <audio id="ambienceForest" src="assets/forest.mp3" loop preload="none"></audio>
+    <audio id="ambienceRain" src="assets/rain.mp3" loop preload="none"></audio>
+
+    <!-- Auto-save Toast -->
+    <div id="toast" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100;">
+        💾 Auto-saved
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed: ', err));
+            });
+        }
+    </script>
+</body>
+</html>

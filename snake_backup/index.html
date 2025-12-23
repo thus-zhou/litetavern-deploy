@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>贪吃蛇游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>贪吃蛇</h1>
+        <div class="score-board">
+            <span>分数: <span id="score">0</span></span>
+            <span style="margin-left: 20px;">撞墙机会: <span id="lives">10</span></span>
+        </div>
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+        </div>
+        <div class="controls">
+            <p class="desktop-hint">使用方向键控制移动</p>
+            <p class="mobile-hint" style="display: none;">滑动屏幕或使用下方按键控制</p>
+            <div class="d-pad">
+                <button id="btnUp" class="d-btn">↑</button>
+                <div class="d-row">
+                    <button id="btnLeft" class="d-btn">←</button>
+                    <button id="btnDown" class="d-btn">↓</button>
+                    <button id="btnRight" class="d-btn">→</button>
+                </div>
+            </div>
+            <div class="main-actions">
+                <button id="restartBtn">重新开始</button>
+                <button id="aiToggleBtn" style="background-color: #2196F3;">启用 AI 托管</button>
+            </div>
+        </div>
+        
+        <div id="aiConfig" class="ai-config" style="display: none;">
+            <h3>AI 设置</h3>
+            <div class="input-group">
+                <label>API 地址:</label>
+                <input type="text" id="aiUrl" value="https://api.openai.com/v1/chat/completions" placeholder="https://api.openai.com/v1/chat/completions">
+            </div>
+            <div class="input-group">
+                <label>API Key:</label>
+                <input type="password" id="aiKey" placeholder="sk-...">
+            </div>
+            <div class="input-group">
+                <label>模型名称:</label>
+                <input type="text" id="aiModel" value="gpt-3.5-turbo">
+            </div>
+            <button id="saveAiConfig">保存并开始</button>
+            <p class="note">注意：AI 响应速度可能较慢，游戏会自动等待。</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
