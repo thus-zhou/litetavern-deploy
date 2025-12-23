@@ -71,6 +71,26 @@ Vercel 是最强的前端托管平台。
 2.  **手机访问**: 直接打开网址，体验极佳。
 3.  **分享**: 发给朋友链接，他们也能注册使用（数据存在云端）。
 
+## 💡 进阶：如何解决“注册/登录失败”？
+(Vercel 环境配置指南)
+
+如果您的前端在 Vercel，后端在 Render，请务必执行以下步骤：
+
+1. **设置环境变量 (Vercel)**
+   * 进入 Vercel 项目设置 -> **Settings** -> **Environment Variables**。
+   * 添加 Key: `VITE_API_URL`
+   * 添加 Value: `https://litetavern-backend.onrender.com`
+   * **重要**: 添加后，必须去 **Deployments** 页面重新 Redeploy 才会生效！
+
+2. **设置环境变量 (Render)**
+   * 进入 Render 后端服务 -> **Environment**。
+   * 添加 Key: `ALLOWED_ORIGINS`
+   * 添加 Value: 您的 Vercel 网址 (例如 `https://litetavern.vercel.app`)，如果有多个用逗号分隔。如果不确定，可以暂时填 `*` (仅用于测试)。
+
+3. **关于 vercel.json**
+   * 项目中的 `frontend/vercel.json` 已经帮您配置好了 Rewrites。这意味着您的前端请求 `/api/xxx` 会自动转发到 Render。
+   * **但是**，有些代码可能直接使用了 `fetch(API_URL + ...)`，所以第1步的环境变量依然非常重要。
+
 ---
 
 ## 💡 进阶方案：使用 Fly.io (解决数据库丢失问题)
