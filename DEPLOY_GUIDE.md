@@ -91,6 +91,20 @@ Vercel 是最强的前端托管平台。
    * 项目中的 `frontend/vercel.json` 已经帮您配置好了 Rewrites。这意味着您的前端请求 `/api/xxx` 会自动转发到 Render。
    * **但是**，有些代码可能直接使用了 `fetch(API_URL + ...)`，所以第1步的环境变量依然非常重要。
 
+## ⚡ 终极优化：如何防止 Render 自动休眠？
+(解决“冷启动慢”的问题)
+
+Render 免费版会在 15 分钟无请求后自动休眠，下次访问需要等待 30-50 秒。
+我们可以通过**每 10 分钟发送一次心跳请求**来保持服务一直在线。
+
+1.  注册一个免费的监控服务账号，推荐 [UptimeRobot](https://uptimerobot.com/) 或 [Cron-Job.org](https://cron-job.org/)。
+2.  **创建新监控 (Add New Monitor)**:
+    *   **Monitor Type**: HTTP(s)
+    *   **Friendly Name**: LiteTavern KeepAlive
+    *   **URL**: `https://litetavern-backend.onrender.com/api/status` (或者 `/docs`)
+    *   **Monitoring Interval**: **10 分钟** (必须小于 15 分钟)
+3.  保存即可。现在您的后端服务将 24 小时保持唤醒状态，随时秒开！
+
 ---
 
 ## 💡 进阶方案：使用 Fly.io (解决数据库丢失问题)
