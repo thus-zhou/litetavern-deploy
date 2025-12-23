@@ -41,11 +41,27 @@ import os
 
 # --- Email Service (SMTP) ---
 def send_email_smtp(email: str, code: str):
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    # Try multiple providers or default to a free relay service if env vars are missing
+    # 1. User configured SMTP (Priority)
+    smtp_server = os.getenv("SMTP_SERVER")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASS", "")
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_pass = os.getenv("SMTP_PASS")
     
+    # 2. Brevo (Sendinblue) Free Tier Fallback (Optional hardcoded fallback for ease of use)
+    # If user didn't config, we can try a public relay if we had one.
+    # But for now, let's just make the error clearer or use a simpler default.
+    
+    # Auto-detect common providers if user only provided user/pass
+    if not smtp_server and smtp_user:
+        if "@gmail.com" in smtp_user:
+            smtp_server = "smtp.gmail.com"
+        elif "@outlook.com" in smtp_user or "@hotmail.com" in smtp_user:
+            smtp_server = "smtp.office365.com"
+        elif "@qq.com" in smtp_user:
+            smtp_server = "smtp.qq.com"
+            smtp_port = 465 # QQ usually needs SSL
+
     if not smtp_user or not smtp_pass:
         print("⚠️ SMTP credentials not set. Falling back to mock email.")
         send_email_mock(email, code)
@@ -69,8 +85,17 @@ def send_email_smtp(email: str, code: str):
         """
         msg.attach(MIMEText(body, 'html'))
         
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
+        if not smtp_server:
+             # Default fallback
+             smtp_server = "smtp.gmail.com"
+
+        # Handle SSL vs TLS based on port
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            
         server.login(smtp_user, smtp_pass)
         server.send_message(msg)
         server.quit()
@@ -79,6 +104,8 @@ def send_email_smtp(email: str, code: str):
     except Exception as e:
         logger.error(f"Failed to send email: {e}")
         print(f"❌ Failed to send email: {e}")
+        # Fallback to mock if real email fails, so user can at least see code in logs if they have access
+        send_email_mock(email, code)
 
 # --- Email Service (Mock) ---
 def send_email_mock(email: str, code: str):
