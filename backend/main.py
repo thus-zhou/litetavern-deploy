@@ -33,8 +33,12 @@ app.include_router(shop.router, prefix="/api") # /api/shop/redeem
 
 @app.on_event("startup")
 async def startup_event():
-    # Start the tunnel automatically
-    tunnel_service.start(port=8000)
+    # Only start tunnel if NOT in production (Render/Vercel)
+    # Render sets RENDER=true
+    if not os.getenv("RENDER") and not os.getenv("NO_TUNNEL"):
+        tunnel_service.start(port=8000)
+    else:
+        print("✅ Production environment detected (or NO_TUNNEL set). Skipping Cloudflare Tunnel.")
 
 @app.on_event("shutdown")
 async def shutdown_event():
