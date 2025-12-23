@@ -34,14 +34,15 @@ export const SettingsPanel: React.FC<{ onClose: () => void }> = ({ onClose }) =>
     fetch('/api/v1/models').then(r => r.json()).then(data => {
         if (data.data) {
             setAvailableModels(data.data);
-            // If current model not in list, select first
+            // If current model not in list (e.g. was deleted or ID changed), select first available
             if (data.data.length > 0) {
-                 // Check if localModel is in data
                  const exists = data.data.find((m: any) => m.id === localModel);
-                 if (!exists) setLocalModel(data.data[0].id);
+                 if (!exists) {
+                     setLocalModel(data.data[0].id);
+                 }
             }
         }
-    });
+    }).catch(e => console.error("Failed to fetch models", e));
 
     // Fetch tunnel status
     const fetchTunnel = async () => {

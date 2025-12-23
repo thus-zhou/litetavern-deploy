@@ -316,12 +316,12 @@ export const AdminDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) =
                             <div>
                                 <label className="text-xs font-bold text-yellow-500 uppercase block mb-1">Power Cost</label>
                                 <input type="number" className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-yellow-400 font-bold" 
-                                    defaultValue={m.power_cost} onBlur={(e) => handleModelUpdate(m, { power_cost: parseInt(e.target.value) })} />
+                                    defaultValue={m.power_cost} onBlur={(e) => handleModelUpdate(m, { power_cost: parseInt(e.target.value) || 0 })} />
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Context Len</label>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Context Length</label>
                                 <input type="number" className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-slate-200" 
-                                    defaultValue={m.context_length} onBlur={(e) => handleModelUpdate(m, { context_length: parseInt(e.target.value) })} />
+                                    defaultValue={m.context_length} onBlur={(e) => handleModelUpdate(m, { context_length: parseInt(e.target.value) || 0 })} />
                             </div>
                             <div className="flex items-center gap-2 pt-2">
                                 <input type="checkbox" defaultChecked={m.enabled} onChange={(e) => handleModelUpdate(m, { enabled: e.target.checked })} className="w-4 h-4" />

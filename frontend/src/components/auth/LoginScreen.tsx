@@ -42,7 +42,9 @@ export const LoginScreen: React.FC = () => {
           setSentCode(true);
           setTimer(60);
           setError("");
-          alert(data.message);
+          // New backend message is just "Verification code sent."
+          // Add hint about spam folder
+          alert(data.message + "\n(If not received, check Spam folder)");
       } catch (e: any) {
           setError(e.message);
       } finally {
