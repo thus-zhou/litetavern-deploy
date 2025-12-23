@@ -157,7 +157,10 @@ export const AdminDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) =
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">管理控制台 (Admin Dashboard)</h1>
+            <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+              <Server size={32} />
+              <span>管理控制台 (Admin Dashboard)</span>
+            </h1>
             <p className="text-slate-400">系统管理 / 用户监控 / 模型配置</p>
           </div>
           <div className="flex flex-wrap gap-3">
