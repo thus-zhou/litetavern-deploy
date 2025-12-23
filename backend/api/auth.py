@@ -34,6 +34,52 @@ def generate_code(length=6):
 def get_client_ip(request: Request):
     return request.client.host
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+
+# --- Email Service (SMTP) ---
+def send_email_smtp(email: str, code: str):
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_pass = os.getenv("SMTP_PASS", "")
+    
+    if not smtp_user or not smtp_pass:
+        print("⚠️ SMTP credentials not set. Falling back to mock email.")
+        send_email_mock(email, code)
+        return
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = smtp_user
+        msg['To'] = email
+        msg['Subject'] = "LiteTavern Verification Code"
+        
+        body = f"""
+        <html>
+          <body>
+            <h2>Welcome to LiteTavern!</h2>
+            <p>Your verification code is:</p>
+            <h1 style="color: #3b82f6; letter-spacing: 5px;">{code}</h1>
+            <p>This code expires in 5 minutes.</p>
+          </body>
+        </html>
+        """
+        msg.attach(MIMEText(body, 'html'))
+        
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
+        server.quit()
+        logger.info(f"Sent email to {email}")
+        print(f"✅ Email sent to {email}")
+    except Exception as e:
+        logger.error(f"Failed to send email: {e}")
+        print(f"❌ Failed to send email: {e}")
+
 # --- Email Service (Mock) ---
 def send_email_mock(email: str, code: str):
     """
@@ -69,9 +115,9 @@ async def send_code(payload: SendCodeRequest, request: Request, background_tasks
     db.save_verification_code(payload.email, code, ip, expires_at)
     
     # 3. Send (Async)
-    background_tasks.add_task(send_email_mock, payload.email, code)
+    background_tasks.add_task(send_email_smtp, payload.email, code)
     
-    return {"message": "Verification code sent. Check your email (or server console)."}
+    return {"message": "Verification code sent."}
 
 @router.post("/auth/register")
 async def register(payload: RegisterRequest, request: Request):

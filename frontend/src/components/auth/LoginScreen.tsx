@@ -82,11 +82,26 @@ export const LoginScreen: React.FC = () => {
             body: JSON.stringify({ username, password })
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.detail);
+          if (!res.ok) {
+              // Try to parse error as text first if JSON fails (common in 404/500)
+              let errMsg = data.detail || res.statusText;
+              try {
+                  await res.text(); // Wait, we already called json()... fetch body can only be read once.
+                  // Actually, above line `const data = await res.json()` would throw if not JSON.
+                  // So if we are here, it IS JSON.
+              } catch (e) {}
+              throw new Error(errMsg);
+          }
           login(data);
       }
     } catch (err: any) {
-      setError(err.message);
+      console.error("Login Error:", err);
+      // Handle non-JSON response error (e.g. "Unexpected token <")
+      if (err.message.includes("Unexpected token") || err.message.includes("JSON")) {
+          setError("Server Error: Received HTML instead of JSON. Check backend logs or URL.");
+      } else {
+          setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

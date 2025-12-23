@@ -17,7 +17,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # In production, set this to your Vercel domain e.g. ["https://litetavern.vercel.app"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
