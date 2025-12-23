@@ -37,28 +37,44 @@ class TunnelService:
             return exe_path
             
         print("[Tunnel] Cloudflared not found. Downloading...")
-        url = "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"
+        
+        # URL List (Try mirror first for China users)
+        urls = [
+            "https://mirror.ghproxy.com/https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe",
+            "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"
+        ]
+        
         if os.name != 'nt':
-            # Simplified for now, assuming Windows as per env
-            url = "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"
-            
-        try:
-            # Increased timeout for slow connections
-            with httpx.stream("GET", url, follow_redirects=True, timeout=60.0) as resp:
-                if resp.status_code != 200:
-                    raise Exception(f"Download failed: {resp.status_code}")
-                with open(exe_path, "wb") as f:
-                    for chunk in resp.iter_bytes():
-                        f.write(chunk)
-            
-            if os.name != 'nt':
-                os.chmod(exe_path, 0o755)
+             urls = [
+                "https://mirror.ghproxy.com/https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64",
+                "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"
+             ]
+        
+        for url in urls:
+            try:
+                print(f"[Tunnel] Trying to download from: {url}")
+                with httpx.stream("GET", url, follow_redirects=True, timeout=120.0) as resp:
+                    if resp.status_code != 200:
+                        print(f"[Tunnel] Failed with status {resp.status_code}")
+                        continue
+                        
+                    with open(exe_path, "wb") as f:
+                        for chunk in resp.iter_bytes():
+                            f.write(chunk)
                 
-            print("[Tunnel] Cloudflared downloaded successfully.")
-            return exe_path
-        except Exception as e:
-            print(f"[Tunnel] Failed to download cloudflared: {e}")
-            return None
+                if os.name != 'nt':
+                    os.chmod(exe_path, 0o755)
+                    
+                print("[Tunnel] Cloudflared downloaded successfully.")
+                return exe_path
+            except Exception as e:
+                print(f"[Tunnel] Download failed from {url}: {e}")
+                continue
+
+        print("❌ All download attempts failed.")
+        print("👉 Please manually download 'cloudflared-windows-amd64.exe' from GitHub and place it in this folder.")
+        print("👉 Download Link: https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe")
+        return None
 
     def start(self, port=8000):
         if self.running:

@@ -1,20 +1,28 @@
 @echo off
+cd /d "%~dp0"
+title LiteTavern 手机/局域网模式
+color 0B
+cls
+
 echo ========================================================
-echo       LiteTavern 手机端同步服务启动器
+echo       LiteTavern 手机端同步服务 (局域网模式)
 echo ========================================================
 echo.
-echo [1] 请确保您的手机和电脑连接的是同一个 Wi-Fi。
+echo [1] 环境检查...
+if not exist venv (
+    echo     未找到虚拟环境，请先运行 start_game.bat 初始化。
+    pause
+    exit
+)
+call venv\Scripts\activate
+
 echo.
 echo [2] 您的局域网 IP 地址:
+echo     (请确保手机和电脑连接同一 Wi-Fi)
+echo.
 ipconfig | findstr "IPv4"
 echo.
-echo [3] 请在手机浏览器中输入以下地址 (使用上面的 IP):
-echo     http://<您的IP地址>:8000
-echo.
-echo [4] 说明:
-echo     - 启动后，请在电脑端登录账号。
-echo     - 手机端访问上述地址，即可同步使用。
-echo     - 或者在电脑端“设置”中查看远程访问二维码 (推荐)。
+echo [3] 手机浏览器输入: http://<上面的IP>:8000
 echo.
 echo ========================================================
 echo 服务正在启动...
