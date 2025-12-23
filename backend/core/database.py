@@ -109,6 +109,19 @@ class Database:
                 )
             ''')
 
+            # --- 8. Invite Codes (New Registration Method) ---
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS invite_codes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    code TEXT UNIQUE NOT NULL,
+                    memo TEXT,
+                    is_used BOOLEAN DEFAULT 0,
+                    used_by INTEGER,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    used_at TIMESTAMP
+                )
+            ''')
+
             # Ensure Admin exists
             cursor.execute("SELECT * FROM users WHERE username = 'admin'")
             if not cursor.fetchone():
@@ -328,6 +341,41 @@ class Database:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM recharge_codes ORDER BY created_at DESC")
+            return [dict(r) for r in cursor.fetchall()]
+
+    # --- Invite Code System ---
+    
+    def create_invite_codes(self, codes: List[Dict]):
+        # codes = [{'code': 'INV-123', 'memo': 'For friend'}]
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.executemany(
+                "INSERT INTO invite_codes (code, memo) VALUES (:code, :memo)",
+                codes
+            )
+            conn.commit()
+
+    def check_invite_code(self, code):
+        """Returns True if code is valid and unused"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM invite_codes WHERE code = ? AND is_used = 0", (code,))
+            return cursor.fetchone() is not None
+
+    def mark_invite_code_used(self, code, user_id):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE invite_codes SET is_used = 1, used_by = ?, used_at = ? WHERE code = ?",
+                (user_id, time.time(), code)
+            )
+            conn.commit()
+
+    def get_all_invite_codes(self):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM invite_codes ORDER BY created_at DESC")
             return [dict(r) for r in cursor.fetchall()]
 
     # --- Config System ---

@@ -92,15 +92,20 @@ def send_email_smtp(email: str, code: str):
         # Handle SSL vs TLS based on port
         if smtp_port == 465:
             server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+            server.login(smtp_user, smtp_pass)
         else:
             server = smtplib.SMTP(smtp_server, smtp_port)
             server.starttls()
+            server.login(smtp_user, smtp_pass)
             
-        server.login(smtp_user, smtp_pass)
         server.send_message(msg)
         server.quit()
         logger.info(f"Sent email to {email}")
         print(f"✅ Email sent to {email}")
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"SMTP Auth Error: {e}")
+        print(f"❌ SMTP Authentication Failed. Check your Password/App Password. Response: {e.smtp_error}")
+        send_email_mock(email, code)
     except Exception as e:
         logger.error(f"Failed to send email: {e}")
         print(f"❌ Failed to send email: {e}")
@@ -150,10 +155,15 @@ async def send_code(payload: SendCodeRequest, request: Request, background_tasks
 async def register(payload: RegisterRequest, request: Request):
     ip = get_client_ip(request)
     
-    # 1. Check Code
-    valid_code = db.get_valid_code(payload.email, payload.code)
-    if not valid_code:
-        raise HTTPException(status_code=400, detail="Invalid or expired verification code.")
+    # 1. Check if Code is Invite Code or Email Code
+    # Try invite code first
+    if db.check_invite_code(payload.code):
+        is_invite = True
+    else:
+        is_invite = False
+        valid_code = db.get_valid_code(payload.email, payload.code)
+        if not valid_code:
+            raise HTTPException(status_code=400, detail="Invalid verification code or invite code.")
     
     # 2. Check IP Limit (1 Account per IP)
     # Admin is exempt or special logic? We stick to strict rule for now.
@@ -167,7 +177,13 @@ async def register(payload: RegisterRequest, request: Request):
         raise HTTPException(status_code=400, detail="Username or Email already exists.")
     
     # 4. Mark Code Used
-    db.mark_code_used(payload.email, payload.code)
+    if is_invite:
+        # Need user_id, retrieve it
+        user = db.get_user_by_auth(payload.username, payload.password)
+        if user:
+            db.mark_invite_code_used(payload.code, user['id'])
+    else:
+        db.mark_code_used(payload.email, payload.code)
     
     return {"message": "User registered successfully."}
 

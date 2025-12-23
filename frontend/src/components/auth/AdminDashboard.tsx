@@ -30,6 +30,10 @@ export const AdminDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) =
   const [genAmount, setGenAmount] = useState(10);
   const [genValue, setGenValue] = useState(100);
   
+  // Invite Generator State
+  const [inviteAmount, setInviteAmount] = useState(5);
+  const [invites, setInvites] = useState<any[]>([]);
+
   const logout = useAuthStore(state => state.logout);
 
   const fetchUsers = async () => {
@@ -55,6 +59,9 @@ export const AdminDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) =
           
           const res2 = await fetch('/api/shop/config');
           setShopConfig(await res2.json());
+          
+          const res3 = await fetch('/api/admin/shop/invites');
+          setInvites(await res3.json());
       } catch (e) { console.error(e); }
   };
 
@@ -79,6 +86,18 @@ export const AdminDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) =
           });
           fetchShop();
           alert(`Generated ${genAmount} codes!`);
+      } catch (e) { alert("Failed"); }
+  };
+  
+  const handleGenerateInvites = async () => {
+      try {
+          await fetch('/api/admin/shop/generate_invites', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ amount: inviteAmount, memo: "Admin Generated" })
+          });
+          fetchShop();
+          alert(`Generated ${inviteAmount} invite codes!`);
       } catch (e) { alert("Failed"); }
   };
   
@@ -276,6 +295,49 @@ export const AdminDashboard: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                {/* Invite Code Generator (New) */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 md:col-span-2">
+                    <h3 className="text-lg font-bold text-white mb-4">Registration Invite Codes</h3>
+                    <p className="text-sm text-slate-400 mb-4">Users can skip email verification by entering these codes.</p>
+                    
+                    <div className="flex gap-4 mb-4 items-end">
+                        <div className="w-32">
+                            <label className="text-xs font-bold text-slate-500 uppercase block mb-1">Quantity</label>
+                            <input type="number" value={inviteAmount} onChange={e => setInviteAmount(parseInt(e.target.value))} className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white" />
+                        </div>
+                        <button onClick={handleGenerateInvites} className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-6 rounded-lg transition-colors h-10">
+                            Generate Invites
+                        </button>
+                    </div>
+
+                    <div className="bg-slate-950 rounded-lg border border-slate-800 max-h-60 overflow-y-auto">
+                        <table className="w-full text-left text-sm">
+                            <thead className="text-slate-500 border-b border-slate-800 sticky top-0 bg-slate-950">
+                                <tr>
+                                    <th className="p-2 pl-4">Invite Code</th>
+                                    <th className="p-2">Memo</th>
+                                    <th className="p-2">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-slate-300 font-mono text-xs">
+                                {invites.map(c => (
+                                    <tr key={c.id} className="border-b border-slate-800/50 hover:bg-slate-900">
+                                        <td className="p-2 pl-4 select-all text-purple-400 font-bold">{c.code}</td>
+                                        <td className="p-2 text-slate-500">{c.memo}</td>
+                                        <td className="p-2">
+                                            {c.is_used ? (
+                                                <span className="text-red-400">Used (ID:{c.used_by})</span>
+                                            ) : (
+                                                <span className="text-green-400">Active</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

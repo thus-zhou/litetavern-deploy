@@ -175,18 +175,29 @@ export const LoginScreen: React.FC = () => {
                     
                     {sentCode && (
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Verification Code</label>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Verification Code / Invite Code</label>
                             <input 
                                 type="text" 
                                 required
-                                placeholder="Enter code from email"
+                                placeholder="Enter email code OR invite code"
                                 className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-slate-100 focus:border-blue-500 outline-none transition-colors text-center tracking-widest font-mono"
                                 value={code}
                                 onChange={e => setCode(e.target.value)}
                             />
+                            <p className="text-[10px] text-slate-500 text-center mt-1">
+                                If you have an Invite Code (INV-...), you can enter it here directly.
+                            </p>
                         </div>
                     )}
                 </>
+            )}
+
+            {isRegistering && !sentCode && (
+                 <div className="text-center">
+                     <button type="button" onClick={() => setSentCode(true)} className="text-xs text-blue-400 hover:underline">
+                         Have an Invite Code? Enter it directly.
+                     </button>
+                 </div>
             )}
 
             {error && (

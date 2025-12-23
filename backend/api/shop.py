@@ -93,6 +93,26 @@ async def generate_codes(payload: GenerateRequest):
 async def list_codes():
     return db.get_all_codes()
 
+class GenerateInviteRequest(BaseModel):
+    amount: int
+    memo: str = ""
+
+@router.post("/admin/shop/generate_invites")
+async def generate_invites(payload: GenerateInviteRequest):
+    codes = []
+    for _ in range(payload.amount):
+        # Format: INV-XXXXXX
+        suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        code = f"INV-{suffix}"
+        codes.append({"code": code, "memo": payload.memo})
+        
+    db.create_invite_codes(codes)
+    return {"message": f"Generated {payload.amount} invite codes", "codes": codes}
+
+@router.get("/admin/shop/invites")
+async def list_invites():
+    return db.get_all_invite_codes()
+
 @router.post("/admin/config")
 async def update_config(payload: ConfigRequest):
     db.set_config(payload.key, payload.value)
